@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	1.31.0
+Version:	1.32.0
 Release:	5%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -107,10 +107,11 @@ EOF
 yarn generate exec:build-protobuf exec:transpile concat copy:deps sass
 
 # avoid building deb/appimage packages, since we're repacking the unpacked sources
+# this also solves build failure on epel 7 due to a too outdated 'tar' command when building the .deb file
 patch --no-backup-if-mismatch -Np1 << 'EOF'
---- a/package.json        2020-02-04 14:35:24.921638200 +0000
-+++ b/package.json        2020-02-04 14:37:44.987770290 +0000
-@@ -252,57 +252,6 @@
+--- a/package.json
++++ b/package.json
+@@ -257,45 +257,6 @@
    },
    "build": {
      "appId": "org.whispersystems.signal-desktop",
@@ -139,7 +140,8 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 -        "node_modules/sharp"
 -      ],
 -      "artifactName": "${name}-win-${version}.${ext}",
--      "certificateSubjectName": "Signal",
+-      "certificateSubjectName": "Signal (Quiet Riddle Ventures, LLC)",
+-      "certificateSha1": "77B2AA4421E5F377454B8B91E573746592D1543D",
 -      "publisherName": "Signal (Quiet Riddle Ventures, LLC)",
 -      "icon": "build/icons/win/icon.ico",
 -      "publish": [
@@ -150,25 +152,12 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 -      ],
 -      "target": [
 -        "nsis"
--      ],
--      "extraFiles": [
--        {
--          "from": "node_modules/@journeyapps/sqlcipher/build/Release/",
--          "to": ".",
--          "filter": [
--            "msvcp140.dll",
--            "vcruntime140.dll"
--          ]
--        }
 -      ]
 -    },
--    "nsis": {
--      "deleteAppDataOnUninstall": true
--    },
-     "linux": {
-       "category": "Network;InstantMessaging;Chat",
-       "desktop": {
-@@ -312,21 +261,8 @@
+     "nsis": {
+       "deleteAppDataOnUninstall": true
+     },
+@@ -308,21 +269,8 @@
          "node_modules/spellchecker/vendor/hunspell_dictionaries",
          "node_modules/sharp"
        ],
