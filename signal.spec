@@ -1,6 +1,6 @@
 Name:		signal-desktop
 Version:	1.32.1
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -244,7 +244,10 @@ done
  
 
 %changelog
-* Sat Feb 08 2020 Guilherme Cardoso <gjc@ua.pt> 10.30.1-3
+* Sat Mar 14 2020 Guilherme Cardoso <gjc@ua.pt> 1.32.1-2
+- Don't try to override XDG_CURRENT_DESKTOP anymore 
+
+* Sat Feb 08 2020 Guilherme Cardoso <gjc@ua.pt> 1.30.1-3
 - Fix spellchecker and audio player. Huge thank you to Christoph Schwille
 
 * Fri Jan 24 2020 Guilherme Cardoso <gjc@ua.pt> 1.30.0-1
