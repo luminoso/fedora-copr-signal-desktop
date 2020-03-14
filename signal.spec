@@ -217,10 +217,10 @@ install -dm755 %{buildroot}%{_datadir}/applications/
 # 1. Run signal WITH sandbox since it looks like there's no problems with fedora and friends
 # 2. Use tray icon by default
 # 3. Small fix for tray for Plasma users
-cat << EOF > %{buildroot}%{_datadir}/applications/signal-desktop.desktop 
+cat << EOF > %{buildroot}%{_datadir}/applications/signal-desktop.desktop
 [Desktop Entry]
 Name=Signal
-Exec=env XDG_CURRENT_DESKTOP=Unity /usr/bin/signal-desktop --use-tray-icon %U
+Exec=/usr/bin/signal-desktop --use-tray-icon %U
 Terminal=false
 Type=Application
 Icon=signal-desktop
