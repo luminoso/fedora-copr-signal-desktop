@@ -1,6 +1,6 @@
 Name:		signal-desktop
-Version:	1.32.1
-Release:	2%{?dist}
+Version:	1.33.1
+Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -48,7 +48,6 @@ cd Signal-Desktop-%{version}
 
 node --version
 
-
 # Set system Electron version for ABI compatibility
 #sed -r 's#("electron": ").*"#\16.1.4"#' -i package.json
 
@@ -56,55 +55,9 @@ node --version
 sed 's#"node": "#&>=#' -i package.json
 
 # Fix spellchecker for Fedora-based distributions
-sed -r 's#("spellchecker": ").*"#\1file:../../SOURCES/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz"#' -i package.json
-sed -r 's!/usr/share/hunspell!/usr/share/myspell!' -i js/spell_check.js
-
-yarn install
-
-# use dynamic linking
-patch --no-backup-if-mismatch -Np1 << 'EOF'
---- a/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:53:29.860275405 -0400
-+++ b/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:51:32.001730882 -0400
-@@ -73,7 +73,7 @@
-         'link_settings': {
-           'libraries': [
-             # This statically links libcrypto, whereas -lcrypto would dynamically link it
--            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/OpenSSL-Linux/libcrypto.a'
-+            '-lcrypto'
-           ]
-         }
-       }]
-@@ -141,7 +141,6 @@
-         { # linux
-           'include_dirs': [
-             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/',
--            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/openssl-include/'
-           ]
-         }]
-       ],
-EOF
-
-
-# We can't read the release date from git so we use SOURCE_DATE_EPOCH instead
-patch --no-backup-if-mismatch -Np1 << 'EOF'
---- a/Gruntfile.js
-+++ b/Gruntfile.js
-@@ -203,9 +203,7 @@ module.exports = grunt => {
-   });
- 
-   grunt.registerTask('getExpireTime', () => {
--    grunt.task.requires('gitinfo');
--    const gitinfo = grunt.config.get('gitinfo');
--    const committed = gitinfo.local.branch.current.lastCommitTime;
-+    const committed = parseInt(process.env.SOURCE_DATE_EPOCH, 10) * 1000;
-     const time = Date.parse(committed) + 1000 * 60 * 60 * 24 * 90;
-     grunt.file.write(
-       'config/local-production.json',
-EOF
-
-# Gruntfile expects Git commit information which we don't have in a tarball download
-# See https://github.com/signalapp/Signal-Desktop/issues/2376
-yarn generate exec:build-protobuf exec:transpile concat copy:deps sass
+# TODO: unsure if still needed after signal 1.33.0
+#sed -r 's#("spellchecker": ").*"#\1file:../../SOURCES/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz"#' -i package.json
+#sed -r 's!/usr/share/hunspell!/usr/share/myspell!' -i js/spell_check.js
 
 # avoid building deb/appimage packages, since we're repacking the unpacked sources
 # this also solves build failure on epel 7 due to a too outdated 'tar' command when building the .deb file
@@ -181,6 +134,52 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
        "schemes": [
 EOF
 
+yarn install
+
+# use dynamic linking
+patch --no-backup-if-mismatch -Np1 << 'EOF'
+--- a/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:53:29.860275405 -0400
++++ b/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:51:32.001730882 -0400
+@@ -73,7 +73,7 @@
+         'link_settings': {
+           'libraries': [
+             # This statically links libcrypto, whereas -lcrypto would dynamically link it
+-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/OpenSSL-Linux/libcrypto.a'
++            '-lcrypto'
+           ]
+         }
+       }]
+@@ -141,7 +141,6 @@
+         { # linux
+           'include_dirs': [
+             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/',
+-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/openssl-include/'
+           ]
+         }]
+       ],
+EOF
+
+
+# We can't read the release date from git so we use SOURCE_DATE_EPOCH instead
+patch --no-backup-if-mismatch -Np1 << 'EOF'
+--- a/Gruntfile.js
++++ b/Gruntfile.js
+@@ -203,9 +203,7 @@ module.exports = grunt => {
+   });
+ 
+   grunt.registerTask('getExpireTime', () => {
+-    grunt.task.requires('gitinfo');
+-    const gitinfo = grunt.config.get('gitinfo');
+-    const committed = gitinfo.local.branch.current.lastCommitTime;
++    const committed = parseInt(process.env.SOURCE_DATE_EPOCH, 10) * 1000;
+     const time = Date.parse(committed) + 1000 * 60 * 60 * 24 * 90;
+     grunt.file.write(
+       'config/local-production.json',
+EOF
+
+# Gruntfile expects Git commit information which we don't have in a tarball download
+# See https://github.com/signalapp/Signal-Desktop/issues/2376
+yarn generate exec:build-protobuf exec:transpile concat copy:deps sass
 
 #env SIGNAL_ENV=production yarn --no-default-rc --verbose build-release --linux rpm
 yarn build-release
@@ -244,6 +243,10 @@ done
  
 
 %changelog
+* Tue Apr 7 2020 Guilherme Cardoso <gjc@ua.pt> 1.33.0-1
+- Reordered patching and build flow
+- Removed spellchecker directory patch for fedora 
+
 * Sat Mar 14 2020 Guilherme Cardoso <gjc@ua.pt> 1.32.1-2
 - Don't try to override XDG_CURRENT_DESKTOP anymore 
 
