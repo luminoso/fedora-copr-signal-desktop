@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	1.33.1
+Version:	1.33.4
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -20,6 +20,9 @@ BuildRequires: libxcrypt-compat
 %endif
 %if 0%{?fedora} > 31
 BuildRequires: libxcrypt-compat, vips-devel
+%endif
+%if 0%{?el8}
+BuildRequires: platform-python-devel, python3
 %endif
 
 AutoReqProv: no
@@ -134,7 +137,18 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
        "schemes": [
 EOF
 
+# fix sqlcipher generic python invocation, incompatible with el8 
+%if 0%{?el8}
+#yarn install || true
+#sed -i 's/python/python3/g' node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp
+mkdir -p ${HOME}/.bin
+ln -s %{__python3} ${HOME}/.bin/python
+export PATH="${HOME}/.bin:${PATH}"
 yarn install
+%else
+yarn install
+%endif
+
 
 # use dynamic linking
 patch --no-backup-if-mismatch -Np1 << 'EOF'
@@ -243,6 +257,9 @@ done
  
 
 %changelog
+* Tue Apr 28 2020 Guilherme Cardoso <gjc@ua.pt> 1.33.4-1
+- Added workarounds for el8 copr build
+
 * Tue Apr 7 2020 Guilherme Cardoso <gjc@ua.pt> 1.33.0-1
 - Reordered patching and build flow
 - Removed spellchecker directory patch for fedora 
