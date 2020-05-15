@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	1.33.4
+Version:	1.34.0
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -67,11 +67,15 @@ sed 's#"node": "#&>=#' -i package.json
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/package.json
 +++ b/package.json
-@@ -257,45 +257,6 @@
+@@ -256,50 +256,6 @@
    },
    "build": {
      "appId": "org.whispersystems.signal-desktop",
 -    "mac": {
+-      "asarUnpack": [
+-        "**/*.node",
+-        "node_modules/zkgroup/libzkgroup.*"
+-      ],
 -      "artifactName": "${name}-mac-${version}.${ext}",
 -      "category": "public.app-category.social-networking",
 -      "darkModeSupport": true,
@@ -93,7 +97,8 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 -    "win": {
 -      "asarUnpack": [
 -        "node_modules/spellchecker/vendor/hunspell_dictionaries",
--        "node_modules/sharp"
+-        "node_modules/sharp",
+-        "node_modules/zkgroup/libzkgroup.*"
 -      ],
 -      "artifactName": "${name}-win-${version}.${ext}",
 -      "certificateSubjectName": "Signal (Quiet Riddle Ventures, LLC)",
@@ -113,9 +118,9 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
      "nsis": {
        "deleteAppDataOnUninstall": true
      },
-@@ -308,21 +269,8 @@
-         "node_modules/spellchecker/vendor/hunspell_dictionaries",
-         "node_modules/sharp"
+@@ -313,21 +269,8 @@
+         "node_modules/sharp",
+         "node_modules/zkgroup/libzkgroup.*"
        ],
 -      "target": [
 -        "deb"
