@@ -1,6 +1,6 @@
 Name:		signal-desktop
-Version:	1.34.0
-Release:	1%{?dist}
+Version:	1.34.2
+Release:	2%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -8,6 +8,7 @@ URL:		https://github.com/signalapp/Signal-Desktop/
 #			https://updates.signal.org/desktop/apt/pool/main/s/signal-desktop/signal-desktop_1.3.0_amd64.deb
 Source0:	https://github.com/signalapp/Signal-Desktop/archive/v%{version}.tar.gz
 Source1:    https://github.com/atom/node-spellchecker/archive/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz
+Source2:    https://github.com/signalapp/zkgroup/archive/v0.7.1.tar.gz
 
 #ExclusiveArch:	x86_64
 BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, openssl-devel, bsdtar, jq, zlib, xz
@@ -35,10 +36,13 @@ Requires: GConf2, libnotify, libappindicator, libXtst, nss
 Private messaging from your desktop
 
 %prep
-pwd
+# prepare zkgroup lib
+tar xfz %{S:2}
+
 rm -rf Signal-Desktop-%{version}
 tar xfz %{S:0}
-cd Signal-Desktop-%{version}
+
+pwd
 
 # allow node 10
 # sed -i 's/"node": "^8.9.3"/"node": ">=8.9.3"/' package.json
@@ -46,7 +50,6 @@ cd Signal-Desktop-%{version}
 # + avoid using fedora's node-gyp
 #yarn --no-default-rc add --dev node-gyp
 
-%build
 cd Signal-Desktop-%{version}
 
 node --version
@@ -149,11 +152,25 @@ EOF
 mkdir -p ${HOME}/.bin
 ln -s %{__python3} ${HOME}/.bin/python
 export PATH="${HOME}/.bin:${PATH}"
-yarn install
-%else
-yarn install
 %endif
 
+yarn install
+
+%build
+
+%if 0%{?el7}
+# zkgroup lib: https://github.com/luminoso/fedora-copr-signal-desktop/issues/3
+cd %{_builddir}/zkgroup-0.7.1
+curl https://sh.rustup.rs -sSf | sh -s -- -q -y
+export PATH="$HOME/.cargo/bin:${PATH}" 
+make libzkgroup
+cp -v target/release/libzkgroup.so %{_builddir}/Signal-Desktop-%{version}/node_modules/zkgroup/
+ldd %{_builddir}/Signal-Desktop-%{version}/node_modules/zkgroup/libzkgroup.so
+%endif
+
+pwd
+
+cd %{_builddir}/Signal-Desktop-%{version} 
 
 # use dynamic linking
 patch --no-backup-if-mismatch -Np1 << 'EOF'
@@ -262,6 +279,10 @@ done
  
 
 %changelog
+* Sun Jun 21 2020 Guilherme Cardoso <gjc@ua.pt> 1.34.2-2
+- Re-order %build and %prep steps
+- Also manually build zkgroup nodemodule shared object on el7
+
 * Tue Apr 28 2020 Guilherme Cardoso <gjc@ua.pt> 1.33.4-1
 - Added workarounds for el8 copr build
 
