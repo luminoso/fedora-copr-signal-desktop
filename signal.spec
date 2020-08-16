@@ -1,6 +1,6 @@
 Name:		signal-desktop
-Version:	1.34.2
-Release:	2%{?dist}
+Version:	1.34.5
+Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -29,7 +29,7 @@ BuildRequires: platform-python-devel, python3
 AutoReqProv: no
 #AutoProv: no
 Provides: signal-desktop
-Requires: GConf2, libnotify, libappindicator, libXtst, nss
+Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss
 %global __requires_exclude_from ^/%{_libdir}/%{name}/release/.*$
 
 %description
@@ -279,6 +279,9 @@ done
  
 
 %changelog
+* Mon Jul 27 2020 Guilherme Cardoso <gjc@ua.pt> 1.34.4-3
+- Replaced 'requires' 'libappindicator' with 'libappindicator-gtk3'
+
 * Sun Jun 21 2020 Guilherme Cardoso <gjc@ua.pt> 1.34.2-2
 - Re-order %build and %prep steps
 - Also manually build zkgroup nodemodule shared object on el7
