@@ -29,7 +29,7 @@ BuildRequires: platform-python-devel, python3
 AutoReqProv: no
 #AutoProv: no
 Provides: signal-desktop
-Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss
+Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver
 %global __requires_exclude_from ^/%{_libdir}/%{name}/release/.*$
 
 %description
