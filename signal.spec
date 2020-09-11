@@ -1,6 +1,6 @@
 Name:		signal-desktop
-Version:	1.34.5
-Release:	2%{?dist}
+Version:	1.36.1
+Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -70,7 +70,7 @@ sed 's#"node": "#&>=#' -i package.json
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/package.json
 +++ b/package.json
-@@ -256,50 +256,6 @@
+@@ -259,51 +259,6 @@
    },
    "build": {
      "appId": "org.whispersystems.signal-desktop",
@@ -99,6 +99,7 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 -    },
 -    "win": {
 -      "asarUnpack": [
+-        "**/*.node",
 -        "node_modules/spellchecker/vendor/hunspell_dictionaries",
 -        "node_modules/sharp",
 -        "node_modules/zkgroup/libzkgroup.*"
@@ -121,7 +122,7 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
      "nsis": {
        "deleteAppDataOnUninstall": true
      },
-@@ -313,21 +269,8 @@
+@@ -318,21 +273,8 @@
          "node_modules/sharp",
          "node_modules/zkgroup/libzkgroup.*"
        ],
