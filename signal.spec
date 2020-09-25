@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	1.36.1
+Version:	1.36.2
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -70,80 +70,92 @@ sed 's#"node": "#&>=#' -i package.json
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/package.json
 +++ b/package.json
-@@ -259,51 +259,6 @@
-   },
-   "build": {
-     "appId": "org.whispersystems.signal-desktop",
--    "mac": {
--      "asarUnpack": [
--        "**/*.node",
--        "node_modules/zkgroup/libzkgroup.*"
--      ],
--      "artifactName": "${name}-mac-${version}.${ext}",
--      "category": "public.app-category.social-networking",
--      "darkModeSupport": true,
--      "hardenedRuntime": true,
--      "entitlements": "./build/entitlements.mac.plist",
--      "icon": "build/icons/mac/icon.icns",
--      "publish": [
--        {
--          "provider": "generic",
--          "url": "https://updates.signal.org/desktop"
--        }
--      ],
--      "target": [
--        "zip",
--        "dmg"
--      ],
--      "bundleVersion": "1"
--    },
--    "win": {
--      "asarUnpack": [
--        "**/*.node",
--        "node_modules/spellchecker/vendor/hunspell_dictionaries",
--        "node_modules/sharp",
--        "node_modules/zkgroup/libzkgroup.*"
--      ],
--      "artifactName": "${name}-win-${version}.${ext}",
--      "certificateSubjectName": "Signal (Quiet Riddle Ventures, LLC)",
--      "certificateSha1": "77B2AA4421E5F377454B8B91E573746592D1543D",
--      "publisherName": "Signal (Quiet Riddle Ventures, LLC)",
--      "icon": "build/icons/win/icon.ico",
--      "publish": [
--        {
--          "provider": "generic",
--          "url": "https://updates.signal.org/desktop"
--        }
--      ],
--      "target": [
--        "nsis"
--      ]
--    },
-     "nsis": {
-       "deleteAppDataOnUninstall": true
-     },
-@@ -318,21 +273,8 @@
-         "node_modules/sharp",
-         "node_modules/zkgroup/libzkgroup.*"
-       ],
--      "target": [
--        "deb"
--      ],
-       "icon": "build/icons/png"
-     },
--    "deb": {
--      "depends": [
--        "libnotify4",
--        "libappindicator1",
--        "libxtst6",
--        "libnss3",
--        "libasound2",
--        "libxss1"
--      ]
--    },
-     "protocols": {
-       "name": "sgnl-url-scheme",
-       "schemes": [
+273,320d272
+<     "mac": {
+<       "asarUnpack": [
+<         "**/*.node",
+<         "node_modules/zkgroup/libzkgroup.*"
+<       ],
+<       "artifactName": "${name}-mac-${version}.${ext}",
+<       "category": "public.app-category.social-networking",
+<       "darkModeSupport": true,
+<       "hardenedRuntime": true,
+<       "entitlements": "./build/entitlements.mac.plist",
+<       "icon": "build/icons/mac/icon.icns",
+<       "publish": [
+<         {
+<           "provider": "generic",
+<           "url": "https://updates.signal.org/desktop"
+<         }
+<       ],
+<       "target": [
+<         "zip",
+<         "dmg"
+<       ],
+<       "bundleVersion": "1"
+<     },
+<     "win": {
+<       "asarUnpack": [
+<         "**/*.node",
+<         "node_modules/spellchecker/vendor/hunspell_dictionaries",
+<         "node_modules/sharp",
+<         "node_modules/zkgroup/libzkgroup.*"
+<       ],
+<       "artifactName": "${name}-win-${version}.${ext}",
+<       "certificateSubjectName": "Signal (Quiet Riddle Ventures, LLC)",
+<       "certificateSha1": "77B2AA4421E5F377454B8B91E573746592D1543D",
+<       "publisherName": "Signal (Quiet Riddle Ventures, LLC)",
+<       "icon": "build/icons/win/icon.ico",
+<       "publish": [
+<         {
+<           "provider": "generic",
+<           "url": "https://updates.signal.org/desktop"
+<         }
+<       ],
+<       "target": [
+<         "nsis"
+<       ]
+<     },
+<     "nsis": {
+<       "deleteAppDataOnUninstall": true
+<     },
+332,334d283
+<       "target": [
+<         "deb"
+<       ],
+336,345d284
+<     },
+<     "deb": {
+<       "depends": [
+<         "libnotify4",
+<         "libappindicator1",
+<         "libxtst6",
+<         "libnss3",
+<         "libasound2",
+<         "libxss1"
+<       ]
+EOF
+
+# fsevents for Apple MacOS also breaks linux build
+patch --no-backup-if-mismatch -Np1 << 'EOF'
+--- a/yarn.lock
++++ b/yarn.lock
+4670,4671d4669
+<   optionalDependencies:
+<     fsevents "^1.2.2"
+4689,4690d4686
+<   optionalDependencies:
+<     fsevents "^1.2.7"
+7703,7710d7698
+< 
+< fsevents@^1.2.2, fsevents@^1.2.7:
+<   version "1.2.9"
+<   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-1.2.9.tgz#3f5ed66583ccd6f400b5a00db6f7e861363e388f"
+<   integrity sha512-oeyj2H3EjjonWcFjD5NvZNE9Rqe4UW+nQBU2HNeKw0koVLEFIhtyETyAakeAM3de7Z/SW5kcA+fZUait9EApnw==
+<   dependencies:
+<     nan "^2.12.1"
+<     node-pre-gyp "^0.12.0"
+
 EOF
 
 # fix sqlcipher generic python invocation, incompatible with el8 
@@ -280,6 +292,10 @@ done
  
 
 %changelog
+* Fri Sep 25 2020 Guilherme Cardoso <gjc@ua.pt> 1.36.2-1
+- Patch to remove fsevents from build, since it make build failing
+in linux environments and is only needed for Apple MacOS users
+
 * Mon Jul 27 2020 Guilherme Cardoso <gjc@ua.pt> 1.34.4-3
 - Replaced 'requires' 'libappindicator' with 'libappindicator-gtk3'
 
