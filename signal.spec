@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	1.36.2
+Version:	1.37.1
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
