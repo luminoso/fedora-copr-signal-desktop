@@ -11,8 +11,8 @@ Source1:    https://github.com/atom/node-spellchecker/archive/613ff91dd2d9a5ee0e
 Source2:    https://github.com/signalapp/zkgroup/archive/v0.7.1.tar.gz
 
 #ExclusiveArch:	x86_64
-BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, openssl-devel, bsdtar, jq, zlib, xz
-BuildRequires: nodejs, ca-certificates, xz
+BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, openssl-devel, bsdtar, jq, zlib, xz, python3
+BuildRequires: nodejs, ca-certificates, xz, curl
 %if 0%{?fedora} > 28
 BuildRequires: python-unversioned-command
 %endif
@@ -44,18 +44,10 @@ tar xfz %{S:0}
 
 pwd
 
-# allow node 10
-# sed -i 's/"node": "^8.9.3"/"node": ">=8.9.3"/' package.json
-
-# + avoid using fedora's node-gyp
-#yarn --no-default-rc add --dev node-gyp
 
 cd Signal-Desktop-%{version}
 
 node --version
-
-# Set system Electron version for ABI compatibility
-#sed -r 's#("electron": ").*"#\16.1.4"#' -i package.json
 
 # Allow higher Node versions
 sed 's#"node": "#&>=#' -i package.json
@@ -159,21 +151,49 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 EOF
 
 # fix sqlcipher generic python invocation, incompatible with el8 
-%if 0%{?el8}
+#%if 0%{?el8}
 #yarn install || true
 #sed -i 's/python/python3/g' node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp
 mkdir -p ${HOME}/.bin
 ln -s %{__python3} ${HOME}/.bin/python
 export PATH="${HOME}/.bin:${PATH}"
-%endif
+#%endif
 
 yarn install
 
 %build
 
-pwd
+# Signal-Desktop ships at least two pre-built binaries. EL7 needs to recompile them due to GLIBC incompatibility 
+#%if 0%{?el7}
+curl https://sh.rustup.rs -sSf | sh -s -- -q -y
+#export PATH="$HOME/.cargo/bin:${PATH}" 
+source $HOME/.bashrc
+rustup toolchain install 1.47.0
+rustup default 1.47.0
+
+# RingRTC https://github.com/signalapp/ringrtc/
+cd %{_builddir}
+rm -rf ringrtc depot_tools
+git clone https://github.com/signalapp/ringrtc
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH="%{_builddir}/depot_tools:${PATH}"
+cd %{_builddir}/ringrtc
+export
+echo $PATH
+make electron PLATFORM=unix
+cp -v src/node/build/linux/libringrtc.node %{_builddir}/Signal-Desktop-%{version}/node_modules/ringrtc/build/linux/libringrtc.node
+
+# zkgroup lib: https://github.com/luminoso/fedora-copr-signal-desktop/issues/3
+cd %{_builddir}/zkgroup-0.7.1
+make libzkgroup
+cp -v target/release/libzkgroup.so %{_builddir}/Signal-Desktop-%{version}/node_modules/zkgroup/
+ldd %{_builddir}/Signal-Desktop-%{version}/node_modules/zkgroup/libzkgroup.so
+
+#%endif
 
 cd %{_builddir}/Signal-Desktop-%{version} 
+
+pwd
 
 # use dynamic linking
 patch --no-backup-if-mismatch -Np1 << 'EOF'
