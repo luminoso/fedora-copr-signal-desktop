@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	1.38.2
+Version:	1.40.0
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -8,11 +8,11 @@ URL:		https://github.com/signalapp/Signal-Desktop/
 #			https://updates.signal.org/desktop/apt/pool/main/s/signal-desktop/signal-desktop_1.3.0_amd64.deb
 Source0:	https://github.com/signalapp/Signal-Desktop/archive/v%{version}.tar.gz
 Source1:    https://github.com/atom/node-spellchecker/archive/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz
-Source2:    https://github.com/signalapp/zkgroup/archive/v0.7.1.tar.gz
+#Source2:    https://github.com/signalapp/zkgroup/archive/v0.7.1.tar.gz
 
 #ExclusiveArch:	x86_64
 BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, openssl-devel, bsdtar, jq, zlib, xz
-BuildRequires: nodejs, ca-certificates, xz
+BuildRequires: nodejs, ca-certificates, xz, git-lfs
 %if 0%{?fedora} > 28
 BuildRequires: python-unversioned-command
 %endif
@@ -37,7 +37,7 @@ Private messaging from your desktop
 
 %prep
 # prepare zkgroup lib
-tar xfz %{S:2}
+#tar xfz %{S:2}
 
 rm -rf Signal-Desktop-%{version}
 tar xfz %{S:0}
@@ -70,11 +70,12 @@ sed 's#"node": "#&>=#' -i package.json
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/package.json
 +++ b/package.json
-273,320d272
+273,319d272
 <     "mac": {
 <       "asarUnpack": [
 <         "**/*.node",
-<         "node_modules/zkgroup/libzkgroup.*"
+<         "node_modules/zkgroup/libzkgroup.*",
+<         "node_modules/libsignal-client/build/*.node"
 <       ],
 <       "artifactName": "${name}-mac-${version}.${ext}",
 <       "category": "public.app-category.social-networking",
@@ -99,7 +100,8 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <         "**/*.node",
 <         "node_modules/spellchecker/vendor/hunspell_dictionaries",
 <         "node_modules/sharp",
-<         "node_modules/zkgroup/libzkgroup.*"
+<         "node_modules/zkgroup/libzkgroup.*",
+<         "node_modules/libsignal-client/build/*.node"
 <       ],
 <       "artifactName": "${name}-win-${version}.${ext}",
 <       "certificateSubjectName": "Signal (Quiet Riddle Ventures, LLC)",
@@ -116,14 +118,11 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <         "nsis"
 <       ]
 <     },
-<     "nsis": {
-<       "deleteAppDataOnUninstall": true
-<     },
-332,334d283
+335,337d287
 <       "target": [
 <         "deb"
 <       ],
-336,345d284
+339,348d288
 <     },
 <     "deb": {
 <       "depends": [
@@ -282,6 +281,10 @@ done
  
 
 %changelog
+* Thu Feb 18 2021 Guilherme Cardoso <gjc@ua.pt> 1.40.0-1
+- BuildRequires git-lfs due to node-sqlcipher
+- Update patches
+
 * Fri Sep 25 2020 Guilherme Cardoso <gjc@ua.pt> 1.36.2-1
 - Patch to remove fsevents from build, since it make build failing
 in linux environments and is only needed for Apple MacOS users
