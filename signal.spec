@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	1.40.0
+Version:	5.0.0
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -7,8 +7,7 @@ URL:		https://github.com/signalapp/Signal-Desktop/
 
 #			https://updates.signal.org/desktop/apt/pool/main/s/signal-desktop/signal-desktop_1.3.0_amd64.deb
 Source0:	https://github.com/signalapp/Signal-Desktop/archive/v%{version}.tar.gz
-Source1:    https://github.com/atom/node-spellchecker/archive/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz
-#Source2:    https://github.com/signalapp/zkgroup/archive/v0.7.1.tar.gz
+Source1:	https://github.com/atom/node-spellchecker/archive/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz
 
 #ExclusiveArch:	x86_64
 BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, openssl-devel, bsdtar, jq, zlib, xz
@@ -30,7 +29,10 @@ AutoReqProv: no
 #AutoProv: no
 Provides: signal-desktop
 Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver
+
 %global __requires_exclude_from ^/%{_libdir}/%{name}/release/.*$
+%define _build_id_links none
+
 
 %description
 Private messaging from your desktop
@@ -70,7 +72,7 @@ sed 's#"node": "#&>=#' -i package.json
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/package.json
 +++ b/package.json
-273,319d272
+284,330d283
 <     "mac": {
 <       "asarUnpack": [
 <         "**/*.node",
@@ -118,16 +120,15 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <         "nsis"
 <       ]
 <     },
-335,337d287
+346,348d298
 <       "target": [
 <         "deb"
 <       ],
-339,348d288
+350,358d299
 <     },
 <     "deb": {
 <       "depends": [
 <         "libnotify4",
-<         "libappindicator1",
 <         "libxtst6",
 <         "libnss3",
 <         "libasound2",
@@ -139,13 +140,10 @@ EOF
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/yarn.lock
 +++ b/yarn.lock
-4670,4671d4669
-<   optionalDependencies:
-<     fsevents "^1.2.2"
-4689,4690d4686
+4901,4902d4900
 <   optionalDependencies:
 <     fsevents "^1.2.7"
-7703,7710d7698
+8005,8012d8002
 < 
 < fsevents@^1.2.2, fsevents@^1.2.7:
 <   version "1.2.9"
@@ -154,7 +152,6 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <   dependencies:
 <     nan "^2.12.1"
 <     node-pre-gyp "^0.12.0"
-
 EOF
 
 # fix sqlcipher generic python invocation, incompatible with el8 
