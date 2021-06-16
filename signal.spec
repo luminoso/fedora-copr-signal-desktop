@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	5.0.0
+Version:	5.5.0
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -10,7 +10,7 @@ Source0:	https://github.com/signalapp/Signal-Desktop/archive/v%{version}.tar.gz
 Source1:	https://github.com/atom/node-spellchecker/archive/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz
 
 #ExclusiveArch:	x86_64
-BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, openssl-devel, bsdtar, jq, zlib, xz
+BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, bsdtar, jq, zlib, xz
 BuildRequires: nodejs, ca-certificates, xz, git-lfs
 %if 0%{?fedora} > 28
 BuildRequires: python-unversioned-command
@@ -72,12 +72,13 @@ sed 's#"node": "#&>=#' -i package.json
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/package.json
 +++ b/package.json
-284,330d283
+302,349d301
 <     "mac": {
 <       "asarUnpack": [
 <         "**/*.node",
 <         "node_modules/zkgroup/libzkgroup.*",
-<         "node_modules/libsignal-client/build/*.node"
+<         "node_modules/@signalapp/signal-client/build/*.node",
+<         "node_modules/mac-screen-capture-permissions/build/Release/*.node"
 <       ],
 <       "artifactName": "${name}-mac-${version}.${ext}",
 <       "category": "public.app-category.social-networking",
@@ -103,7 +104,7 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <         "node_modules/spellchecker/vendor/hunspell_dictionaries",
 <         "node_modules/sharp",
 <         "node_modules/zkgroup/libzkgroup.*",
-<         "node_modules/libsignal-client/build/*.node"
+<         "node_modules/@signalapp/signal-client/build/*.node"
 <       ],
 <       "artifactName": "${name}-win-${version}.${ext}",
 <       "certificateSubjectName": "Signal (Quiet Riddle Ventures, LLC)",
@@ -120,11 +121,11 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <         "nsis"
 <       ]
 <     },
-346,348d298
+365,367d316
 <       "target": [
 <         "deb"
 <       ],
-350,358d299
+369,377d317
 <     },
 <     "deb": {
 <       "depends": [
@@ -172,27 +173,27 @@ pwd
 cd %{_builddir}/Signal-Desktop-%{version} 
 
 # use dynamic linking
-patch --no-backup-if-mismatch -Np1 << 'EOF'
---- a/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:53:29.860275405 -0400
-+++ b/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:51:32.001730882 -0400
-@@ -73,7 +73,7 @@
-         'link_settings': {
-           'libraries': [
-             # This statically links libcrypto, whereas -lcrypto would dynamically link it
--            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/OpenSSL-Linux/libcrypto.a'
-+            '-lcrypto'
-           ]
-         }
-       }]
-@@ -141,7 +141,6 @@
-         { # linux
-           'include_dirs': [
-             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/',
--            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/openssl-include/'
-           ]
-         }]
-       ],
-EOF
+#patch --no-backup-if-mismatch -Np1 << 'EOF'
+#--- a/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:53:29.860275405 -0400
+#+++ b/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:51:32.001730882 -0400
+#@@ -73,7 +73,7 @@
+#         'link_settings': {
+#           'libraries': [
+#             # This statically links libcrypto, whereas -lcrypto would dynamically link it
+#-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/OpenSSL-Linux/libcrypto.a'
+#+            '-lcrypto'
+#           ]
+#         }
+#       }]
+#@@ -141,7 +141,6 @@
+#         { # linux
+#           'include_dirs': [
+#             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/',
+#-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/openssl-include/'
+#           ]
+#         }]
+#       ],
+#EOF
 
 
 # We can't read the release date from git so we use SOURCE_DATE_EPOCH instead
@@ -212,12 +213,8 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
        'config/local-production.json',
 EOF
 
-# Gruntfile expects Git commit information which we don't have in a tarball download
-# See https://github.com/signalapp/Signal-Desktop/issues/2376
-yarn generate exec:build-protobuf exec:transpile concat copy:deps sass
-
-#env SIGNAL_ENV=production yarn --no-default-rc --verbose build-release --linux rpm
-yarn build-release
+yarn generate
+yarn build
 
 %install
 
@@ -269,6 +266,11 @@ for i in 16 24 32 48 64 128 256 512 1024; do
     install -Dm 644 %{_builddir}/Signal-Desktop-%{version}/build/icons/png/${i}x${i}.png %{buildroot}%{_datadir}/icons/hicolor/${i}x${i}/apps/%{name}.png
 done
 
+# delete prebuilt binaries for other platforms
+for i in "darwin-x64" "linux-arm64" "win32-ia32" "win32-x64"; do
+ find %{buildroot} -type d -iname "$i" -exec rm -rfv {} \; | grep -q "."
+done
+
 
 %files
 %defattr(-,root,root)
@@ -278,6 +280,10 @@ done
  
 
 %changelog
+* Wed May 12 2021 Guilherme Cardoso <gjc@ua.pt> 5.1.0-1
+- Remove openssl dynamic link patches
+- Remove bundled binaries for other platforms
+
 * Thu Feb 18 2021 Guilherme Cardoso <gjc@ua.pt> 1.40.0-1
 - BuildRequires git-lfs due to node-sqlcipher
 - Update patches
