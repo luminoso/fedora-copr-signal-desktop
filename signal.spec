@@ -1,6 +1,6 @@
 Name:		signal-desktop
 Version:	5.15.0
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -13,7 +13,7 @@ Patch1:     signal-desktop-expire-from-source-date-epoch.patch
 
 #ExclusiveArch:	x86_64
 BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, bsdtar, jq, zlib, xz
-BuildRequires: nodejs, ca-certificates, xz, git-lfs
+BuildRequires: nodejs, ca-certificates, xz, git-lfs, vips
 %if 0%{?fedora} > 28
 BuildRequires: python-unversioned-command
 %endif
@@ -30,7 +30,7 @@ BuildRequires: platform-python-devel, python3
 AutoReqProv: no
 #AutoProv: no
 Provides: signal-desktop
-Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver
+Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver, vips
 
 %global __requires_exclude_from ^/%{_libdir}/%{name}/release/.*$
 %define _build_id_links none
@@ -128,9 +128,9 @@ chmod +x %{buildroot}%{_bindir}/signal-desktop
 install -d -m 0755 %{buildroot}%{_datadir}/applications/
 install -m 0644 %{SOURCE1} %{buildroot}%{_datadir}/applications/%{name}.desktop
 
-%if 0%{?suse_version}
-%suse_update_desktop_file %{name}
-%endif
+#%if 0%{?suse_version}
+#%suse_update_desktop_file %{name}
+#%endif
 
 # icons
 for i in 16 24 32 48 64 128 256 512; do
