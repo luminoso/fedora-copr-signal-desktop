@@ -13,7 +13,7 @@ Patch1:     signal-desktop-expire-from-source-date-epoch.patch
 
 #ExclusiveArch:	x86_64
 BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, bsdtar, jq, zlib, xz
-BuildRequires: nodejs, ca-certificates, xz, git-lfs, vips
+BuildRequires: nodejs, ca-certificates, xz, git-lfs
 %if 0%{?fedora} > 28
 BuildRequires: python-unversioned-command
 %endif
@@ -30,7 +30,13 @@ BuildRequires: platform-python-devel, python3
 AutoReqProv: no
 #AutoProv: no
 Provides: signal-desktop
-Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver, vips
+Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver
+
+%if 0%{?suse_version:1}
+Requires: libvips42
+%else
+Requires: vips
+%endif
 
 %global __requires_exclude_from ^/%{_libdir}/%{name}/release/.*$
 %define _build_id_links none
