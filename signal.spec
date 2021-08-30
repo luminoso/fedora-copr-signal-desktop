@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	5.5.0
+Version:	5.14.0
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -54,6 +54,8 @@ pwd
 
 cd Signal-Desktop-%{version}
 
+git lfs install
+
 node --version
 
 # Set system Electron version for ABI compatibility
@@ -72,7 +74,7 @@ sed 's#"node": "#&>=#' -i package.json
 patch --no-backup-if-mismatch -Np1 << 'EOF'
 --- a/package.json
 +++ b/package.json
-302,349d301
+302,355d301
 <     "mac": {
 <       "asarUnpack": [
 <         "**/*.node",
@@ -107,9 +109,12 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <         "node_modules/@signalapp/signal-client/build/*.node"
 <       ],
 <       "artifactName": "${name}-win-${version}.${ext}",
-<       "certificateSubjectName": "Signal (Quiet Riddle Ventures, LLC)",
-<       "certificateSha1": "77B2AA4421E5F377454B8B91E573746592D1543D",
-<       "publisherName": "Signal (Quiet Riddle Ventures, LLC)",
+<       "certificateSubjectName": "Signal Messenger, LLC",
+<       "certificateSha1": "8C9A0B5C852EC703D83EF7BFBCEB54B796073759",
+<       "signingHashAlgorithms": [
+<         "sha256"
+<       ],
+<       "publisherName": "Signal Messenger, LLC",
 <       "icon": "build/icons/win/icon.ico",
 <       "publish": [
 <         {
@@ -121,11 +126,14 @@ patch --no-backup-if-mismatch -Np1 << 'EOF'
 <         "nsis"
 <       ]
 <     },
-365,367d316
+<     "nsis": {
+<       "deleteAppDataOnUninstall": true
+<     },
+368,370d313
 <       "target": [
 <         "deb"
 <       ],
-369,377d317
+372,380d314
 <     },
 <     "deb": {
 <       "depends": [
@@ -164,7 +172,7 @@ ln -s %{__python3} ${HOME}/.bin/python
 export PATH="${HOME}/.bin:${PATH}"
 %endif
 
-yarn install
+yarn install --ignore-engines
 
 %build
 
@@ -196,22 +204,6 @@ cd %{_builddir}/Signal-Desktop-%{version}
 #EOF
 
 
-# We can't read the release date from git so we use SOURCE_DATE_EPOCH instead
-patch --no-backup-if-mismatch -Np1 << 'EOF'
---- a/Gruntfile.js
-+++ b/Gruntfile.js
-@@ -203,9 +203,7 @@ module.exports = grunt => {
-   });
- 
-   grunt.registerTask('getExpireTime', () => {
--    grunt.task.requires('gitinfo');
--    const gitinfo = grunt.config.get('gitinfo');
--    const committed = gitinfo.local.branch.current.lastCommitTime;
-+    const committed = parseInt(process.env.SOURCE_DATE_EPOCH, 10) * 1000;
-     const time = Date.parse(committed) + 1000 * 60 * 60 * 24 * 90;
-     grunt.file.write(
-       'config/local-production.json',
-EOF
 
 yarn generate
 yarn build
