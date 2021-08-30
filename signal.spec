@@ -1,13 +1,15 @@
 Name:		signal-desktop
-Version:	5.14.0
-Release:	1%{?dist}
+Version:	5.15.0
+Release:	2%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
 
 #			https://updates.signal.org/desktop/apt/pool/main/s/signal-desktop/signal-desktop_1.3.0_amd64.deb
 Source0:	https://github.com/signalapp/Signal-Desktop/archive/v%{version}.tar.gz
-Source1:	https://github.com/atom/node-spellchecker/archive/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz
+Source1:	%{name}.desktop
+Patch0:     signal-desktop-better-sqlite3-openssl.patch
+Patch1:     signal-desktop-expire-from-source-date-epoch.patch
 
 #ExclusiveArch:	x86_64
 BuildRequires: binutils, git, python2, gcc, gcc-c++, yarn, bsdtar, jq, zlib, xz
@@ -33,135 +35,15 @@ Requires: GConf2, libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver
 %global __requires_exclude_from ^/%{_libdir}/%{name}/release/.*$
 %define _build_id_links none
 
+%if 0%{?fedora}
+%global debug_package %{nil}
+%endif
 
 %description
-Private messaging from your desktop
+Signal Desktop is an Electron application that links with your Signal Android
+or Signal iOS app.
 
 %prep
-# prepare zkgroup lib
-#tar xfz %{S:2}
-
-rm -rf Signal-Desktop-%{version}
-tar xfz %{S:0}
-
-pwd
-
-# allow node 10
-# sed -i 's/"node": "^8.9.3"/"node": ">=8.9.3"/' package.json
-
-# + avoid using fedora's node-gyp
-#yarn --no-default-rc add --dev node-gyp
-
-cd Signal-Desktop-%{version}
-
-git lfs install
-
-node --version
-
-# Set system Electron version for ABI compatibility
-#sed -r 's#("electron": ").*"#\16.1.4"#' -i package.json
-
-# Allow higher Node versions
-sed 's#"node": "#&>=#' -i package.json
-
-# Fix spellchecker for Fedora-based distributions
-# TODO: unsure if still needed after signal 1.33.0
-#sed -r 's#("spellchecker": ").*"#\1file:../../SOURCES/613ff91dd2d9a5ee0e86be8a3682beecc4e94887.tar.gz"#' -i package.json
-#sed -r 's!/usr/share/hunspell!/usr/share/myspell!' -i js/spell_check.js
-
-# avoid building deb/appimage packages, since we're repacking the unpacked sources
-# this also solves build failure on epel 7 due to a too outdated 'tar' command when building the .deb file
-patch --no-backup-if-mismatch -Np1 << 'EOF'
---- a/package.json
-+++ b/package.json
-302,355d301
-<     "mac": {
-<       "asarUnpack": [
-<         "**/*.node",
-<         "node_modules/zkgroup/libzkgroup.*",
-<         "node_modules/@signalapp/signal-client/build/*.node",
-<         "node_modules/mac-screen-capture-permissions/build/Release/*.node"
-<       ],
-<       "artifactName": "${name}-mac-${version}.${ext}",
-<       "category": "public.app-category.social-networking",
-<       "darkModeSupport": true,
-<       "hardenedRuntime": true,
-<       "entitlements": "./build/entitlements.mac.plist",
-<       "icon": "build/icons/mac/icon.icns",
-<       "publish": [
-<         {
-<           "provider": "generic",
-<           "url": "https://updates.signal.org/desktop"
-<         }
-<       ],
-<       "target": [
-<         "zip",
-<         "dmg"
-<       ],
-<       "bundleVersion": "1"
-<     },
-<     "win": {
-<       "asarUnpack": [
-<         "**/*.node",
-<         "node_modules/spellchecker/vendor/hunspell_dictionaries",
-<         "node_modules/sharp",
-<         "node_modules/zkgroup/libzkgroup.*",
-<         "node_modules/@signalapp/signal-client/build/*.node"
-<       ],
-<       "artifactName": "${name}-win-${version}.${ext}",
-<       "certificateSubjectName": "Signal Messenger, LLC",
-<       "certificateSha1": "8C9A0B5C852EC703D83EF7BFBCEB54B796073759",
-<       "signingHashAlgorithms": [
-<         "sha256"
-<       ],
-<       "publisherName": "Signal Messenger, LLC",
-<       "icon": "build/icons/win/icon.ico",
-<       "publish": [
-<         {
-<           "provider": "generic",
-<           "url": "https://updates.signal.org/desktop"
-<         }
-<       ],
-<       "target": [
-<         "nsis"
-<       ]
-<     },
-<     "nsis": {
-<       "deleteAppDataOnUninstall": true
-<     },
-368,370d313
-<       "target": [
-<         "deb"
-<       ],
-372,380d314
-<     },
-<     "deb": {
-<       "depends": [
-<         "libnotify4",
-<         "libxtst6",
-<         "libnss3",
-<         "libasound2",
-<         "libxss1"
-<       ]
-EOF
-
-# fsevents for Apple MacOS also breaks linux build
-patch --no-backup-if-mismatch -Np1 << 'EOF'
---- a/yarn.lock
-+++ b/yarn.lock
-4901,4902d4900
-<   optionalDependencies:
-<     fsevents "^1.2.7"
-8005,8012d8002
-< 
-< fsevents@^1.2.2, fsevents@^1.2.7:
-<   version "1.2.9"
-<   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-1.2.9.tgz#3f5ed66583ccd6f400b5a00db6f7e861363e388f"
-<   integrity sha512-oeyj2H3EjjonWcFjD5NvZNE9Rqe4UW+nQBU2HNeKw0koVLEFIhtyETyAakeAM3de7Z/SW5kcA+fZUait9EApnw==
-<   dependencies:
-<     nan "^2.12.1"
-<     node-pre-gyp "^0.12.0"
-EOF
 
 # fix sqlcipher generic python invocation, incompatible with el8 
 %if 0%{?el8}
@@ -172,6 +54,28 @@ ln -s %{__python3} ${HOME}/.bin/python
 export PATH="${HOME}/.bin:${PATH}"
 %endif
 
+# git-lfs hook needs to be installed for one of the dependencies
+git lfs install
+
+node --version
+
+rm -rf Signal-Desktop-%{version}
+tar xfz %{S:0}
+pwd
+
+cd Signal-Desktop-%{version}
+
+# Allow higher Node versions
+sed 's#"node": "#&>=#' -i package.json
+
+# patch better-sqlite3 to encapsulate sqlcipher
+# https://bugs.archlinux.org/task/69980
+grep -q 2fa02d2484e9f9a10df5ac7ea4617fb2dff30006 package.json
+sed 's|https://github\.com/signalapp/better-sqlite3#2fa02d2484e9f9a10df5ac7ea4617fb2dff30006|https://github.com/heftig/better-sqlite3#c8410c7f4091a5c4e458ce13ac35b04b2eea574b|' -i package.json
+
+# We can't read the release date from git so we use SOURCE_DATE_EPOCH instead
+%patch1 -p1
+
 yarn install --ignore-engines
 
 %build
@@ -179,99 +83,85 @@ yarn install --ignore-engines
 pwd
 
 cd %{_builddir}/Signal-Desktop-%{version} 
-
-# use dynamic linking
-#patch --no-backup-if-mismatch -Np1 << 'EOF'
-#--- a/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:53:29.860275405 -0400
-#+++ b/node_modules/@journeyapps/sqlcipher/deps/sqlite3.gyp	2019-10-27 01:51:32.001730882 -0400
-#@@ -73,7 +73,7 @@
-#         'link_settings': {
-#           'libraries': [
-#             # This statically links libcrypto, whereas -lcrypto would dynamically link it
-#-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/OpenSSL-Linux/libcrypto.a'
-#+            '-lcrypto'
-#           ]
-#         }
-#       }]
-#@@ -141,7 +141,6 @@
-#         { # linux
-#           'include_dirs': [
-#             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/',
-#-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/openssl-include/'
-#           ]
-#         }]
-#       ],
-#EOF
-
-
-
 yarn generate
 yarn build
 
+
 %install
 
-# Electron directory of the final build depends on the arch
-%ifnarch x86_64
-    %global PACKDIR linux-ia32-unpacked
-%else
-    %global PACKDIR linux-unpacked
-%endif
+pwd
+cd Signal-Desktop-%{version}
+ls
 
+install -d -m 0755 %{buildroot}%{_libdir}/%{name}
 
-# copy base files
-install -dm755 %{buildroot}/%{_libdir}/%{name}
-cp -a %{_builddir}/Signal-Desktop-%{version}/release/linux-unpacked/* %{buildroot}/%{_libdir}/%{name}
+# Remove unneeded files
+rm -rf release/linux-unpacked/resources/app.asar.unpacked/node_modules/sharp/{docs,src,vendor}
+rm -rf release/linux-unpacked/resources/app.asar.unpacked/node_modules/sharp/node_modules/node-addon-api/
+rm -rf release/linux-unpacked/resources/app.asar.unpacked/node_modules/ringrtc/build/{darwin,win32}
+rm -rf release/linux-unpacked/resources/app.asar.unpacked/node_modules/ffi-napi/prebuilds/{darwin-x64,linux-arm64,win32-ia32,win32-x64}
+rm -rf release/linux-unpacked/resources/app.asar.unpacked/node_modules/ffi-napi/node_modules/ref-napi/prebuilds/{darwin-x64,linux-arm64,win32-ia32,win32-x64}
+rm -rf release/linux-unpacked/resources/app.asar.unpacked/node_modules/ref-napi/prebuilds/{darwin-x64,linux-arm64,win32-ia32,win32-x64}
+rm -rf release/linux-unpacked/resources/app.asar.unpacked/node_modules/@signalapp/signal-client/prebuilds/{darwin-x64,win32-x64}
 
-# delete uneeded build files
-# this also would make signal-desktop package provide the wrong library .so files
-#find %{buildroot}/%{_libdir}/%{name}/resources/ -iname '*.so*' -delete -print
+# correct mod
+find release/linux-unpacked -type d | xargs chmod 755
+find release/linux-unpacked -type f | xargs chmod 644
+chmod +x release/linux-unpacked/signal-desktop
 
-# try to slim down install base. TODO: this breaks voice message player
-#rm -rf %{buildroot}/%{_libdir}/%{name}/chrome_*.pak 
-#rm -rf %{buildroot}/%{_libdir}/%{name}/chrome-sandbox
-#rm -rf %{buildroot}/%{_libdir}/%{name}/swiftshader
+# Copy all required files
+cp -r release/linux-unpacked/* %{buildroot}%{_libdir}/%{name}
 
+install -d -m 0755 %{buildroot}%{_bindir}
 
-install -dm755 %{buildroot}%{_bindir}
-ln -s %{_libdir}/%{name}/signal-desktop %{buildroot}%{_bindir}/signal-desktop
+cat << EOF > %{buildroot}%{_bindir}/signal-desktop
+#!/bin/sh
+exec %{_libdir}/%{name}/signal-desktop "\$@"
+EOF
+chmod +x %{buildroot}%{_bindir}/signal-desktop
 
-install -dm755 %{buildroot}%{_datadir}/applications/
+# desktop file
 # Changes from upstream:
 # 1. Run signal WITH sandbox since it looks like there's no problems with fedora and friends
 # 2. Use tray icon by default
 # 3. Small fix for tray for Plasma users
-cat << EOF > %{buildroot}%{_datadir}/applications/signal-desktop.desktop
-[Desktop Entry]
-Name=Signal
-Exec=/usr/bin/signal-desktop --use-tray-icon %U
-Terminal=false
-Type=Application
-Icon=signal-desktop
-StartupWMClass=Signal
-Comment=Private messaging from your desktop
-MimeType=x-scheme-handler/sgnl;
-Categories=Network;InstantMessaging;Chat;
-EOF
+install -d -m 0755 %{buildroot}%{_datadir}/applications/
+install -m 0644 %{SOURCE1} %{buildroot}%{_datadir}/applications/%{name}.desktop
 
-for i in 16 24 32 48 64 128 256 512 1024; do
-    install -dm755 %{buildroot}%{_datadir}/icons/hicolor/${i}x${i}/apps/
-    install -Dm 644 %{_builddir}/Signal-Desktop-%{version}/build/icons/png/${i}x${i}.png %{buildroot}%{_datadir}/icons/hicolor/${i}x${i}/apps/%{name}.png
+%if 0%{?suse_version}
+%suse_update_desktop_file %{name}
+%endif
+
+# icons
+for i in 16 24 32 48 64 128 256 512; do
+    install -d -m 0755 %{buildroot}%{_datadir}/icons/hicolor/${i}x${i}/apps/
+    install -m 0644 build/icons/png/${i}x${i}.png %{buildroot}%{_datadir}/icons/hicolor/${i}x${i}/apps/%{name}.png
 done
 
-# delete prebuilt binaries for other platforms
-for i in "darwin-x64" "linux-arm64" "win32-ia32" "win32-x64"; do
- find %{buildroot} -type d -iname "$i" -exec rm -rfv {} \; | grep -q "."
-done
-
+#%fdupes %{buildroot}%{_libdir}/%{name}
 
 %files
 %defattr(-,root,root)
-%{_bindir}/*
-%{_libdir}/*
-%{_datadir}/*
+#%doc ACKNOWLEDGMENTS.md CONTRIBUTING.md README.md
+#%license LICENSE
+%{_bindir}/%{name}
+
+%dir %{_libdir}/%{name}
+
+%{_libdir}/%{name}
+
+%{_datadir}/icons/hicolor/
+
+%dir %{_datadir}/applications/
+%{_datadir}/applications/%{name}.desktop
  
 
 %changelog
+* Sun Aug 29 2021 Guilherme Cardoso <gjc@ua.pt> 5.15.0-1
+- Start to sync rpm spec file with https://build.opensuse.org/project/show/network:im:signal
+- Sync patches with latest ArchLinux ones
+- Move patches out of spec file
+
 * Wed May 12 2021 Guilherme Cardoso <gjc@ua.pt> 5.1.0-1
 - Remove openssl dynamic link patches
 - Remove bundled binaries for other platforms

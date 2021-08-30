@@ -1,0 +1,36 @@
+Index: Signal-Desktop-5.1.0/node_modules/better-sqlite3/deps/sqlite3.gyp
+===================================================================
+--- Signal-Desktop-5.1.0.orig/node_modules/better-sqlite3/deps/sqlite3.gyp	2021-04-27 20:48:18.000000000 +0200
++++ Signal-Desktop-5.1.0/node_modules/better-sqlite3/deps/sqlite3.gyp	2021-05-17 08:32:57.512356224 +0200
+@@ -56,12 +56,10 @@
+       'sources': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c'],
+       'include_dirs': [
+         '<(SHARED_INTERMEDIATE_DIR)/sqlite3/',
+-        '<(SHARED_INTERMEDIATE_DIR)/sqlite3/openssl-include',
+       ],
+       'direct_dependent_settings': {
+         'include_dirs': [
+           '<(SHARED_INTERMEDIATE_DIR)/sqlite3/',
+-          '<(SHARED_INTERMEDIATE_DIR)/sqlite3/openssl-include',
+         ],
+       },
+       'cflags': ['-std=c99', '-w'],
+@@ -90,16 +88,14 @@
+         'OS == "mac"', {
+           'link_settings': {
+             'libraries': [
+-              # This statically links libcrypto, whereas -lcrypto would dynamically link it
+-              '<(SHARED_INTERMEDIATE_DIR)/sqlite3/OpenSSL-macOS/libcrypto.a'
++              '-lcrypto'
+             ]
+           }
+         },
+         { # Linux
+           'link_settings': {
+             'libraries': [
+-              # This statically links libcrypto, whereas -lcrypto would dynamically link it
+-              '<(SHARED_INTERMEDIATE_DIR)/sqlite3/OpenSSL-Linux/libcrypto.a'
++              '-lcrypto'
+             ]
+           }
+         }],
