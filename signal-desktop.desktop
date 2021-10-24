@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Signal
-Exec=/usr/bin/signal-desktop --use-tray-icon %U
+Exec=/usr/bin/signal-desktop --use-tray-icon --disable-seccomp-filter-sandbox %U
 Terminal=false
 Type=Application
 Icon=signal-desktop

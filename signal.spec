@@ -1,6 +1,6 @@
 Name:		signal-desktop
-Version:	5.15.0
-Release:	3%{?dist}
+Version:	5.20.0
+Release:	2%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -73,6 +73,13 @@ cd Signal-Desktop-%{version}
 
 # Allow higher Node versions
 sed 's#"node": "#&>=#' -i package.json
+
+# Allow higher electron versions
+#sed 's/"electron": "13.3.0"/"electron": "~14.1.1"/' -i package.json
+#sed 's#"electron-builder": "#&~#' -i package.json
+#sed 's#"electron-mocha": "#&~#' -i package.json
+#sed 's#"electron-notarize": "#&~#' -i package.json
+#sed 's#"@electron/fuses": "#&~#' -i package.json
 
 # patch better-sqlite3 to encapsulate sqlcipher
 # https://bugs.archlinux.org/task/69980
@@ -163,6 +170,10 @@ done
  
 
 %changelog
+* Sun Oct 24 2021 Guilherme Cardoso <gjc@ua.pt> 5.20.0-2
+- Added "--disable-seccomp-filter-sandbox" due to an older electron version crash on newer systems
+https://github.com/luminoso/fedora-copr-signal-desktop/issues/12
+
 * Sun Aug 29 2021 Guilherme Cardoso <gjc@ua.pt> 5.15.0-1
 - Start to sync rpm spec file with https://build.opensuse.org/project/show/network:im:signal
 - Sync patches with latest ArchLinux ones
