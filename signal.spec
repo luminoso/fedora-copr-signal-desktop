@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	5.20.0
+Version:	5.29.1
 Release:	2%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -8,7 +8,7 @@ URL:		https://github.com/signalapp/Signal-Desktop/
 #			https://updates.signal.org/desktop/apt/pool/main/s/signal-desktop/signal-desktop_1.3.0_amd64.deb
 Source0:	https://github.com/signalapp/Signal-Desktop/archive/v%{version}.tar.gz
 Source1:	%{name}.desktop
-Patch0:     signal-desktop-better-sqlite3-openssl.patch
+#Patch0:     signal-desktop-better-sqlite3-openssl.patch
 Patch1:     signal-desktop-expire-from-source-date-epoch.patch
 
 #ExclusiveArch:	x86_64
@@ -50,6 +50,8 @@ Signal Desktop is an Electron application that links with your Signal Android
 or Signal iOS app.
 
 %prep
+# https://bugzilla.redhat.com/show_bug.cgi?id=1793722
+export SOURCE_DATE_EPOCH="$(date +"%s")"
 
 # fix sqlcipher generic python invocation, incompatible with el8 
 %if 0%{?el8}
@@ -83,17 +85,24 @@ sed 's#"node": "#&>=#' -i package.json
 
 # patch better-sqlite3 to encapsulate sqlcipher
 # https://bugs.archlinux.org/task/69980
-grep -q 2fa02d2484e9f9a10df5ac7ea4617fb2dff30006 package.json
-sed 's|https://github\.com/signalapp/better-sqlite3#2fa02d2484e9f9a10df5ac7ea4617fb2dff30006|https://github.com/heftig/better-sqlite3#c8410c7f4091a5c4e458ce13ac35b04b2eea574b|' -i package.json
+#grep -q 32828e03be0489572ab334239c5768c86697989 package.json
+#sed 's|https://github\.com/signalapp/better-sqlite3#32828e03be0489572ab334239c5768c86697989|https://github.com/signalapp/better-sqlite3#917a6f5cf8b84d5ef4b8fe6dc0f4b8f59ca45bea|' -i package.json
+
 
 # We can't read the release date from git so we use SOURCE_DATE_EPOCH instead
 %patch1 -p1
 
+npm config set python /usr/bin/python2
 yarn install --ignore-engines
 
 %build
 
+# https://bugzilla.redhat.com/show_bug.cgi?id=1793722
+export SOURCE_DATE_EPOCH="$(date +"%s")"
+echo $SOURCE_DATE_EPOCH
+
 pwd
+date
 
 cd %{_builddir}/Signal-Desktop-%{version} 
 yarn generate
@@ -170,6 +179,9 @@ done
  
 
 %changelog
+* Thu Oct 28 2021 Guilherme Cardoso <gjc@ua.pt> 5.22.0-1
+- Disabled better-sqlite patches
+
 * Sun Oct 24 2021 Guilherme Cardoso <gjc@ua.pt> 5.20.0-2
 - Added "--disable-seccomp-filter-sandbox" due to an older electron version crash on newer systems
 https://github.com/luminoso/fedora-copr-signal-desktop/issues/12
