@@ -1,6 +1,6 @@
 Name:		signal-desktop
-Version:	5.29.1
-Release:	3%{?dist}
+Version:	5.30.0
+Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -30,7 +30,7 @@ BuildRequires: platform-python-devel, python3
 AutoReqProv: no
 #AutoProv: no
 Provides: signal-desktop
-Requires: libnotify, libappindicator-gtk3, libXtst, nss, libXScrnSaver
+Requires: libnotify, libXtst, nss
 
 %if 0%{?suse_version:1}
 Requires: libvips42
@@ -178,6 +178,9 @@ done
  
 
 %changelog
+* Sun Feb 6 2022 Guilherme Cardoso <gjc@ua.pt> 5.30.0-1
+- Remove libappindicator-gtk3, libXScrnSaver dependencies
+
 * Sat Jan 29 2022 Guilherme Cardoso <gjc@ua.pt> 5.19.1-3
 - Follow upstream and remove GConf2 dependency 
 
