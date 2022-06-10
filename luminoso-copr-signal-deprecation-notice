@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+
+echo ""
+echo "This Signal-Desktop copr was discontinued for Fedora releases older than Fedora 36 due packaging Signal violating Copr terms and shipping ffmpeg with Signal."
+echo ""
+echo "Your options are:"
+echo ""
+echo "1. Remove this version and install Flatpak version (recommended)"
+echo "Flatpak: https://flathub.org/apps/details/org.signal.Signal"
+echo ""
+echo "2. Upgrade your Fedora release to the latest Fedora 36 and keep using this copr"
+echo "https://docs.fedoraproject.org/en-US/quick-docs/upgrading/"
+echo ""
+echo "More info at Signal copr repo: https://copr.fedorainfracloud.org/coprs/luminoso/Signal-Desktop/"
+echo ""
+echo "luminoso"
+echo "2022-06-10"
+echo "https://copr.fedorainfracloud.org/coprs/luminoso/Signal-Desktop/"

@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	5.30.0
+Version:	5.45.1
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -8,7 +8,7 @@ URL:		https://github.com/signalapp/Signal-Desktop/
 #			https://updates.signal.org/desktop/apt/pool/main/s/signal-desktop/signal-desktop_1.3.0_amd64.deb
 Source0:	https://github.com/signalapp/Signal-Desktop/archive/v%{version}.tar.gz
 Source1:	%{name}.desktop
-#Patch0:     signal-desktop-better-sqlite3-openssl.patch
+#Patch0:    signal-desktop-better-sqlite3-openssl.patch
 Patch1:     signal-desktop-expire-from-source-date-epoch.patch
 
 #ExclusiveArch:	x86_64
