@@ -1,5 +1,5 @@
 Name:		signal-desktop
-Version:	5.45.1
+Version:	5.56.0
 Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
@@ -75,6 +75,20 @@ cd Signal-Desktop-%{version}
 
 # Allow higher Node versions
 sed 's#"node": "#&>=#' -i package.json
+
+# Disable building deb package
+patch -p0 << EOF
+--- package.json	2022-08-24 21:15:13.597420398 +0100
++++ package.json	2022-08-25 09:01:22.424884862 +0100
+@@ -385,7 +385,6 @@
+         "StartupWMClass": "Signal"
+       },
+       "target": [
+-        "deb"
+       ],
+       "icon": "build/icons/png"
+     },
+EOF
 
 # Allow higher electron versions
 #sed 's/"electron": "13.3.0"/"electron": "~14.1.1"/' -i package.json
@@ -178,6 +192,9 @@ done
  
 
 %changelog
+* Thu Aug 25 2022 Guilherme Cardoso <gjc@ua.pt> 5.56.0-1
+- Avoid building .deb package
+
 * Sun Feb 6 2022 Guilherme Cardoso <gjc@ua.pt> 5.30.0-1
 - Remove libappindicator-gtk3, libXScrnSaver dependencies
 
