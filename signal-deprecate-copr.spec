@@ -1,6 +1,6 @@
 Name:		signal-desktop
-Version:	5.45.1
-Release:	99%{?dist}
+Version:	99.0.0
+Release:	1%{?dist}
 Summary:	Private messaging from your desktop
 License:	GPLv3
 URL:		https://github.com/signalapp/Signal-Desktop/
@@ -48,5 +48,8 @@ install -m 0644 %{SOURCE1} %{buildroot}%{_datadir}/applications/%{name}.desktop
  
 
 %changelog
+* Wed Nov 16 2022 Guilherme Cardoso <gjc@ua.pt> 99.0.0-1
+- Update deprecation notice
+
 * Fri Jun 10 2022 Guilherme Cardoso <gjc@ua.pt> 5.30.0-1
 - Special mock release to deprecate Signal-desktop copr
